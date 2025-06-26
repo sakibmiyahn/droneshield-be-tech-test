@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { DataSourceOptions } from 'typeorm';
 import { Sensor } from '../entities/sensor.entity';
 import { SensorSoftwareHistory } from '../entities/sensor-software-history.entity';

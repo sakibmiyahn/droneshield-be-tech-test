@@ -7,3 +7,11 @@ export interface SensorResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface SoftwareResponse {
+  id: number;
+  version: string;
+  filePath: string;
+  originalFileName: string;
+  uploadedAt: Date;
+}

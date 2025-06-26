@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';

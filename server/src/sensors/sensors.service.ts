@@ -6,7 +6,7 @@ import { Sensor } from '../entities/sensor.entity';
 
 @Injectable()
 export class SensorsService {
-  private logger = new Logger(SensorsService.name);
+  private readonly logger = new Logger(SensorsService.name);
 
   constructor(
     @InjectRepository(Sensor)
