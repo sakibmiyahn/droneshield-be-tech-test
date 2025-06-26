@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { SensorResponse } from '../common/interfaces';
 import { Software } from './software.entity';
 
 @Entity()
@@ -39,4 +40,21 @@ export class Sensor {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  toResponse(): SensorResponse {
+    return {
+      id: this.id,
+      serial: this.serial,
+      isOnline: this.isOnline,
+      lastSeenAt: this.lastSeenAt,
+      currentSoftware: this.currentSoftware
+        ? {
+            id: this.currentSoftware.id,
+            version: this.currentSoftware.version,
+          }
+        : null,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
 }
