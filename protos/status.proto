@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package status;
+
+option go_package = "../pb;statuspb";
+
+service DeviceStatusService {
+  rpc SendStatus (DeviceStatus) returns (StatusAck);
+}
+
+message DeviceStatus {
+  string serial = 1;
+  string software_version = 2;
+}
+
+message StatusAck {
+  string message = 1;
+}
