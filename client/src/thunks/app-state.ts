@@ -22,15 +22,21 @@ export const loadPaginatedSensors =
     try {
       const response = await getPaginatedSensors(page, limit);
 
-      if (response && Array.isArray(response)) {
+      if (response && Array.isArray(response.data)) {
         // Assuming response is an array of ISensor
-        dispatch(AppSlice.actions.setSensorsData(response));
+        dispatch(AppSlice.actions.setSensorsData(response.data));
+        dispatch(
+          AppSlice.actions.setPaginationMeta({
+            total: response.total,
+            pageCount: response.pageCount,
+          })
+        );
       } else {
-        console.warn("No sensor data received or unexpected response format");
+        console.warn('No sensor data received or unexpected response format');
         dispatch(AppSlice.actions.setSensorsData([]));
       }
     } catch (error) {
-      console.error("Failed to load paginated sensors:", error);
+      console.error('Failed to load paginated sensors:', error);
       dispatch(AppSlice.actions.setSensorsData([]));
     } finally {
       dispatch(AppSlice.actions.setIsFetchingSensors(false));
@@ -59,5 +65,5 @@ export const uploadSoftwareFile =
 
 export const thunks = {
   loadPaginatedSensors,
-  uploadSoftwareFile
+  uploadSoftwareFile,
 };

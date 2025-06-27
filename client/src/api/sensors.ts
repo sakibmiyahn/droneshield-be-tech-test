@@ -1,10 +1,10 @@
 import api from '.';
-import { ISensor } from '../types/sensor';
+import { PaginatedSensorsResponse } from '../types/sensor';
 
 export const getPaginatedSensors = async (
   page: number,
   limit: number
-): Promise<ISensor[]> => {
+): Promise<PaginatedSensorsResponse> => {
   const response = await api.get(`/sensors`, {
     params: { page, limit },
   });

@@ -5,12 +5,12 @@ export class GetSensorsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  page?: number = 1;
+  @Min(0)
+  page?: number = 0;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit?: number = 20;
+  limit?: number = 10;
 }

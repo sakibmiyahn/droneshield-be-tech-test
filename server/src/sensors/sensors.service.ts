@@ -16,11 +16,11 @@ export class SensorsService {
   async getSensors(query: GetSensorsDto) {
     try {
       this.logger.log(`getSensors - query: ${JSON.stringify(query)}`);
-      const { page = 1, limit = 20 } = query;
+      const { page = 0, limit = 10 } = query;
 
       const [data, total] = await this.sensorRepository.findAndCount({
         relations: ['currentSoftware'],
-        skip: (page - 1) * limit,
+        skip: page * limit,
         take: limit,
         order: { id: 'ASC' },
       });
@@ -28,8 +28,6 @@ export class SensorsService {
       return {
         data: data.map((sensor) => sensor.toResponse()),
         total,
-        page,
-        limit,
         pageCount: Math.ceil(total / limit),
       };
     } catch (error) {

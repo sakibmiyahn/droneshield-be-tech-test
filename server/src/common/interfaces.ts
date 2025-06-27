@@ -3,7 +3,7 @@ export interface SensorResponse {
   serial: string;
   isOnline: boolean;
   lastSeenAt: Date;
-  currentSoftware: { id: number; version: string } | null;
+  version: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
