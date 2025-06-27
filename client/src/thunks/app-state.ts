@@ -45,19 +45,31 @@ export const loadPaginatedSensors =
 
 export const uploadSoftwareFile =
   ({ file }: FileUploadParams): AppThunk =>
-  async (dispatch, getState): Promise<void> => {
+  async (
+    dispatch,
+    getState
+  ): Promise<{ success: boolean; message: string }> => {
     dispatch(AppSlice.actions.setIsUploadingSoftware(true));
 
     try {
       const response = await uploadSoftware(file);
 
       if (response && response.success) {
-        console.log('File uploaded successfully:', response);
+        console.log('Software uploaded successfully:', response);
+        return {
+          success: true,
+          message: response.message || 'Software uploaded successfully.',
+        };
       } else {
         console.warn('File upload failed, unexpected response:', response);
+        return {
+          success: false,
+          message: response.message || 'Software upload failed',
+        };
       }
     } catch (error) {
       console.error('Error during file upload:', error);
+      return { success: false, message: 'Software upload failed' };
     } finally {
       dispatch(AppSlice.actions.setIsUploadingSoftware(false));
     }

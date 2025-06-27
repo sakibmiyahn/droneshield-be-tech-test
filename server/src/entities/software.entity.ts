@@ -1,5 +1,4 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import { SoftwareResponse } from '../common/interfaces';
 
 @Entity()
 export class Software {
@@ -18,14 +17,4 @@ export class Software {
 
   @CreateDateColumn()
   uploadedAt: Date;
-
-  toResponse(): SoftwareResponse {
-    return {
-      id: this.id,
-      version: this.version,
-      filePath: this.filePath,
-      originalFileName: this.originalFileName,
-      uploadedAt: this.uploadedAt,
-    };
-  }
 }

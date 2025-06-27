@@ -9,7 +9,7 @@ export class SoftwareController {
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
   async uploadSoftware(@UploadedFiles() files: Array<Express.Multer.File>) {
-    if (!files || files.length === 0) throw new BadRequestException('No files uploaded');
+    if (!files || files.length === 0) return { success: false, message: 'No files provided' };
 
     return this.softwareService.handleUpload(files);
   }

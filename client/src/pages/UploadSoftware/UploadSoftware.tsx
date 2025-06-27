@@ -1,8 +1,8 @@
 import { FC, useState } from 'react';
 
 // Redux
-import { thunks as AppThunk } from "../../thunks/app-state";
-import { RootState, useDispatch, useSelector } from "../../store";
+import { thunks as AppThunk } from '../../thunks/app-state';
+import { RootState, useDispatch, useSelector } from '../../store';
 
 // MUI
 import HomeIcon from '@mui/icons-material/Home';
@@ -17,11 +17,12 @@ import { FileUpload } from '../../components/molecules';
 const UploadSoftware: FC = () => {
   const dispatch = useDispatch();
   const { isUploadingSoftware } = useSelector(
-      (state: RootState) => state.appState
-    );
+    (state: RootState) => state.appState
+  );
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleFileChange = (file: File | null) => {
     if (file && file.type !== 'application/pdf') {
@@ -33,24 +34,34 @@ const UploadSoftware: FC = () => {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (selectedFile) {
-      dispatch(AppThunk.uploadSoftwareFile({file: selectedFile}));
+      const result = (await dispatch(
+        AppThunk.uploadSoftwareFile({ file: selectedFile })
+      )) as unknown as { success: boolean; message: string };
+      if (result && result.success) {
+        setSuccess('Software uploaded successfully!');
+        setError(undefined);
+      } else {
+        setError(result?.message || 'Software upload failed');
+        setSuccess(null);
+      }
     }
   };
 
   const handleClear = () => {
     setSelectedFile(null);
     setError(undefined);
+    setSuccess(null);
   };
 
   return (
     <Container maxWidth="md">
-      <Header 
-        title='Upload Software'
-        tooltip='Home'
-        href='/' 
-        icon={<HomeIcon />} 
+      <Header
+        title="Upload Software"
+        tooltip="Home"
+        href="/"
+        icon={<HomeIcon />}
       />
       <Box
         sx={{
@@ -60,7 +71,7 @@ const UploadSoftware: FC = () => {
         }}
       >
         <FileUpload
-          acceptType='application/pdf'
+          acceptType="application/pdf"
           value={selectedFile}
           onChange={handleFileChange}
           onClear={handleClear}
@@ -68,10 +79,10 @@ const UploadSoftware: FC = () => {
           disabled={false}
         />
         <Box sx={{ mt: 4 }}>
-          <Button 
-            variant='outlined' 
-            onClick={handleUpload} 
-            disabled={isUploadingSoftware} 
+          <Button
+            variant="outlined"
+            onClick={handleUpload}
+            disabled={isUploadingSoftware}
             sx={{
               color: '#c77800',
               borderColor: '#c77800',
@@ -80,6 +91,16 @@ const UploadSoftware: FC = () => {
             Upload Software
           </Button>
         </Box>
+        {success && (
+          <Box sx={{ mt: 2 }}>
+            <span style={{ color: 'green' }}>{success}</span>
+          </Box>
+        )}
+        {error && (
+          <Box sx={{ mt: 2 }}>
+            <span style={{ color: 'red' }}>Software upload failed!</span>
+          </Box>
+        )}
       </Box>
     </Container>
   );
