@@ -68,11 +68,13 @@ export class SoftwareService {
   }
 
   private extractVersion(filename: string): string | null {
-    const match = filename.match(/software_v([\d.]+)\.pdf$/i);
+    // Match both v-prefixed and non-v-prefixed versions
+    const match = filename.match(/software_((v)?\d+\.\d+\.\d+(?:-[\w.]+)?)\.pdf$/i);
     return match?.[1] || null;
   }
 
   private isValidSemver(version: string): boolean {
-    return /^\d+\.\d+\.\d+(-[\w.]+)?$/.test(version);
+    // Allow optional 'v' prefix
+    return /^(v)?\d+\.\d+\.\d+(-[\w.]+)?$/.test(version);
   }
 }

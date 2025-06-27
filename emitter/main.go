@@ -100,7 +100,7 @@ func main() {
 	serials := loadSerialsFromDB()
 
 	conn, err := grpc.NewClient(
-		"",
+		"server:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

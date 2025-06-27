@@ -21,10 +21,6 @@ export class Sensor {
   serial: string;
 
   @Index()
-  @Column({ type: 'timestamp', nullable: true })
-  lastSeenAt: Date;
-
-  @Index()
   @Column({ default: false })
   isOnline: boolean;
 
@@ -34,6 +30,10 @@ export class Sensor {
 
   @Column({ nullable: true })
   currentSoftwareId: number;
+
+  @Index()
+  @Column({ type: 'timestamp', nullable: true })
+  lastSeenAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -45,9 +45,9 @@ export class Sensor {
     return {
       id: this.id,
       serial: this.serial,
+      version: this.currentSoftware ? this.currentSoftware.version : null,
       isOnline: this.isOnline,
       lastSeenAt: this.lastSeenAt,
-      version: this.currentSoftware ? this.currentSoftware.version : null,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

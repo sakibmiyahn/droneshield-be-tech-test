@@ -7,3 +7,7 @@ export interface SensorResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface StatusAck {
+  message: string;
+}
