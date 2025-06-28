@@ -28,6 +28,15 @@ services:
     ports:
       - 3000:3000
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/var/lib/redis/data
+    restart: always
+    command: redis-server --timeout 0 --tcp-keepalive 300
+
   server:
     build:
       context: .
@@ -35,12 +44,14 @@ services:
     env_file:
       - .env
     environment:
-      - UPLOADS_DIR=/usr/app/uploads
       - POSTGRES_HOST=db
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_NAME=${POSTGRES_NAME}
+      - UPLOADS_DIR=${UPLOADS_DIR:-/usr/app/uploads}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - 8000:8000
       - 50051:50051
@@ -48,6 +59,8 @@ services:
       - ./uploads:/usr/app/uploads
     depends_on:
       - db
+      - redis
 
 volumes:
   postgres-data:
+  redis-data:
