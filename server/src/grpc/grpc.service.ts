@@ -29,14 +29,13 @@ export class GrpcService {
   async processDeviceStatus(payload: DeviceStatusDto): Promise<StatusAck> {
     try {
       const { serial, softwareVersion } = payload;
-      this.logger.debug(`gRPC - serial: ${serial}, version: ${softwareVersion}`);
+      this.logger.debug(`gRPC:serial: ${serial}, version: ${softwareVersion}`);
       const redisKey = `sensor:${serial}`;
       const redisVal = await this.redis.get(redisKey);
 
       // Check if version is same and sensor was recently online
       if (redisVal === softwareVersion) {
         await this.redis.expire(redisKey, this.redisTTL);
-        this.emitSensorUpdate(serial, softwareVersion, true);
         return { message: 'Sensor already online with same version' };
       }
 
@@ -67,7 +66,13 @@ export class GrpcService {
 
       await this.sensorRepository.save(sensor);
       await this.redis.set(redisKey, softwareVersion, 'EX', this.redisTTL);
-      this.emitSensorUpdate(serial, softwareVersion, true);
+
+      // Emit update to WebSocket clients
+      this.sensorGateway.emitSensorUpdate({
+        serial,
+        version: softwareVersion,
+        isOnline: true,
+      });
 
       return {
         message: software
@@ -75,17 +80,8 @@ export class GrpcService {
           : `Sensor online; unknown version: ${softwareVersion}`,
       };
     } catch (err) {
-      this.logger.error('Error processing status:', err?.message || err);
-      return { message: 'Internal error processing device status' };
+      this.logger.error(`gRPC:error: ${err?.message || err}`);
+      return { message: 'Error processing device status' };
     }
-  }
-
-  // Emit update to WebSocket clients
-  private emitSensorUpdate(serial: string, version: string | null, isOnline: boolean) {
-    this.sensorGateway.emitSensorUpdate({
-      serial,
-      version,
-      isOnline,
-    });
   }
 }

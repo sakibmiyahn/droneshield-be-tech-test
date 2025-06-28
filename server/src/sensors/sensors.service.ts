@@ -15,7 +15,7 @@ export class SensorsService {
 
   async getSensors(query: GetSensorsDto) {
     try {
-      this.logger.log(`getSensors - query: ${JSON.stringify(query)}`);
+      this.logger.log(`getSensors:query: ${JSON.stringify(query)}`);
       const { page = 0, limit = 10 } = query;
 
       const [data, total] = await this.sensorRepository.findAndCount({
@@ -30,14 +30,14 @@ export class SensorsService {
         total,
         pageCount: Math.ceil(total / limit),
       };
-    } catch (error) {
-      console.error('Error fetching sensors:', error);
+    } catch (err) {
+      console.error(`getSensors:error: ${err?.message || err}`);
 
       throw new HttpException(
         {
           status: 500,
           message: 'Failed to fetch sensors',
-          error: error?.message || 'Internal server error',
+          error: err?.message || 'Internal server error',
         },
         500,
       );

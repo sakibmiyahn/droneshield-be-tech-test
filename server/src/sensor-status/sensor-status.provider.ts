@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { Cron } from '@nestjs/schedule';
-import { Inject } from '@nestjs/common';
+import { Inject, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
@@ -22,36 +22,43 @@ export class SensorStatusProvider {
 
   @Cron(process.env.SENSOR_STATUS_CRON || '*/2 * * * * ') // Default to every 2 minutes if not set
   async markOfflineSensors() {
-    const sensors = await this.sensorRepository.find({ where: { isOnline: true } });
-    const offlineSensors: Sensor[] = [];
+    try {
+      const sensors = await this.sensorRepository.find({ where: { isOnline: true } });
+      const offlineSensors: Sensor[] = [];
 
-    for (const sensor of sensors) {
-      const redisKey = `sensor:${sensor.serial}`;
-      const exists = await this.redis.exists(redisKey);
+      for (const sensor of sensors) {
+        const redisKey = `sensor:${sensor.serial}`;
+        const exists = await this.redis.exists(redisKey);
 
-      if (!exists) offlineSensors.push(sensor);
-    }
+        if (!exists) offlineSensors.push(sensor);
+      }
 
-    if (offlineSensors.length > 0) {
-      const serials = offlineSensors.map((s) => s.serial);
+      if (offlineSensors.length > 0) {
+        const serials = offlineSensors.map((s) => s.serial);
 
-      await this.sensorRepository
-        .createQueryBuilder('sensor')
-        .update(Sensor)
-        .set({ isOnline: false })
-        .where('serial IN (:...serials)', { serials })
-        .execute();
+        await this.sensorRepository
+          .createQueryBuilder('sensor')
+          .update(Sensor)
+          .set({ isOnline: false })
+          .where('serial IN (:...serials)', { serials })
+          .execute();
 
-      this.logger.log(`markOfflineSensors - count: ${offlineSensors.length}`);
+        this.logger.log(`markOfflineSensors:count: ${offlineSensors.length}`);
 
-      // Emit socket updates
-      offlineSensors.forEach((sensor) => {
-        this.sensorGateway.emitSensorUpdate({
-          serial: sensor.serial,
-          version: sensor.software?.version || null,
-          isOnline: false,
+        // Emit socket updates
+        offlineSensors.forEach((sensor) => {
+          this.sensorGateway.emitSensorUpdate({
+            serial: sensor.serial,
+            version: sensor.software?.version || null,
+            isOnline: false,
+          });
         });
-      });
+      }
+    } catch (err) {
+      this.logger.error(`markOfflineSensors:error: ${err?.message || err}`);
+      throw new InternalServerErrorException(
+        `Failed to mark offline sensors: ${err?.message || 'Internal server error'}`,
+      );
     }
   }
 }

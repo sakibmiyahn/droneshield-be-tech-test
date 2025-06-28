@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { WebSocketPayload } from '../types/interfaces';
 
@@ -10,8 +10,16 @@ export class SocketGateway {
   @WebSocketServer()
   server: Server;
 
+  handleConnection(client: Socket) {
+    this.logger.log(`handleConnection:client: ${client.id}`);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`handleDisconnect:client: ${client.id}`);
+  }
+
   emitSensorUpdate(payload: WebSocketPayload) {
-    this.logger.debug(`ws: ${JSON.stringify(payload)}`);
+    this.logger.debug(`socket: ${JSON.stringify(payload)}`);
     this.server.emit('sensor-status-update', payload);
   }
 }
