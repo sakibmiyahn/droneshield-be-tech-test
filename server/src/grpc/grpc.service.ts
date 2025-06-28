@@ -70,7 +70,7 @@ export class GrpcService {
       // Emit update to WebSocket clients
       this.sensorGateway.emitSensorUpdate({
         serial,
-        version: softwareVersion,
+        version: sensor.software ? sensor.software.version : null,
         isOnline: true,
       });
 
