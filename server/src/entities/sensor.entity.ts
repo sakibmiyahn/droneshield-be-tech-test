@@ -47,9 +47,6 @@ export class Sensor {
       serial: this.serial,
       version: this.software ? this.software.version : null,
       isOnline: this.isOnline,
-      lastSeenAt: this.lastSeenAt,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
     };
   }
 }

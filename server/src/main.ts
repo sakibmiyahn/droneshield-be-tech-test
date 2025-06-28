@@ -25,8 +25,8 @@ async function bootstrap() {
     }),
   );
 
-  // Start gRPC microservice
-  const grpcApp = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+  // Attach gRPC microservice
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
       package: 'status',
@@ -35,9 +35,8 @@ async function bootstrap() {
     },
   });
 
-  grpcApp.listen().then(() => logger.log('gRPC server is listening on port 50051'));
-
-  // Start the HTTP server
+  // Start the server and microservices
+  await app.startAllMicroservices();
   await app.listen(port);
   logger.log(`server is listening on port: ${port}`);
 }

@@ -1,8 +1,10 @@
+import Redis from 'ioredis';
 import { DeviceStatusDto } from './dto/device-status.dto';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Sensor } from '../entities/sensor.entity';
+import { SocketGateway } from '../socket/socket.gateway';
 import { SensorSoftwareHistory } from '../entities/sensor-software-history.entity';
 import { Software } from '../entities/software.entity';
 import { StatusAck } from '../types/interfaces';
@@ -10,6 +12,7 @@ import { StatusAck } from '../types/interfaces';
 @Injectable()
 export class GrpcService {
   private readonly logger = new Logger(GrpcService.name);
+  private readonly redisTTL = Number(process.env.REDIS_TTL) || 600; // Defaults to 10 minutes if not set
 
   constructor(
     @InjectRepository(Sensor)
@@ -18,30 +21,37 @@ export class GrpcService {
     private readonly softwareRepository: Repository<Software>,
     @InjectRepository(SensorSoftwareHistory)
     private readonly sensorSoftwareHistoryRepository: Repository<SensorSoftwareHistory>,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: Redis,
+    private readonly sensorGateway: SocketGateway,
   ) {}
 
   async processDeviceStatus(payload: DeviceStatusDto): Promise<StatusAck> {
     try {
       const { serial, softwareVersion } = payload;
-      this.logger.log(`processDeviceStatus - serial: ${serial}, version: ${softwareVersion}`);
+      this.logger.debug(`gRPC - serial: ${serial}, version: ${softwareVersion}`);
+      const redisKey = `sensor:${serial}`;
+      const redisVal = await this.redis.get(redisKey);
+
+      // Check if version is same and sensor was recently online
+      if (redisVal === softwareVersion) {
+        await this.redis.expire(redisKey, this.redisTTL);
+        this.emitSensorUpdate(serial, softwareVersion, true);
+        return { message: 'Sensor already online with same version' };
+      }
 
       const sensor = await this.sensorRepository.findOne({ where: { serial } });
 
       if (!sensor) return { message: `Sensor not found: ${serial}` };
 
-      const software = await this.softwareRepository.findOne({ where: { version: softwareVersion } });
-
-      // Update basic status
+      // Update online status
       sensor.isOnline = true;
       sensor.lastSeenAt = new Date();
 
-      if (!software) {
-        await this.sensorRepository.save(sensor);
-        return { message: `Sensor marked online; unknown version: ${softwareVersion}` };
-      }
+      const software = await this.softwareRepository.findOne({ where: { version: softwareVersion } });
 
       // Track history if version changed
-      if (sensor.softwareId !== software.id) {
+      if (software && sensor.softwareId !== software.id) {
         if (sensor.softwareId) {
           await this.sensorSoftwareHistoryRepository.save(
             this.sensorSoftwareHistoryRepository.create({
@@ -49,21 +59,33 @@ export class GrpcService {
               software: { id: sensor.softwareId } as Software,
             }),
           );
-
-          this.logger.log(`History recorded - serial: ${serial}, previous version ID: ${sensor.softwareId}`);
         }
 
         sensor.software = software;
         sensor.softwareId = software.id;
-
-        this.logger.log(`Sensor updated - serial: ${serial}, new version: ${softwareVersion}`);
       }
 
       await this.sensorRepository.save(sensor);
-      return { message: `Sensor status updated - version: ${softwareVersion}` };
+      await this.redis.set(redisKey, softwareVersion, 'EX', this.redisTTL);
+      this.emitSensorUpdate(serial, softwareVersion, true);
+
+      return {
+        message: software
+          ? `Sensor status updated - version: ${softwareVersion}`
+          : `Sensor online; unknown version: ${softwareVersion}`,
+      };
     } catch (err) {
-      this.logger.error('Error processing status:', err);
+      this.logger.error('Error processing status:', err?.message || err);
       return { message: 'Internal error processing device status' };
     }
+  }
+
+  // Emit update to WebSocket clients
+  private emitSensorUpdate(serial: string, version: string | null, isOnline: boolean) {
+    this.sensorGateway.emitSensorUpdate({
+      serial,
+      version,
+      isOnline,
+    });
   }
 }

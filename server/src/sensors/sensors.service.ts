@@ -19,7 +19,7 @@ export class SensorsService {
       const { page = 0, limit = 10 } = query;
 
       const [data, total] = await this.sensorRepository.findAndCount({
-        relations: ['currentSoftware'],
+        relations: ['software'],
         skip: page * limit,
         take: limit,
         order: { id: 'ASC' },
