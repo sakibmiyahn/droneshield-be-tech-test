@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { DeviceStatusDto } from './dto/device-status.dto';
 import { GrpcMethod } from '@nestjs/microservices';
 import { GrpcService } from './grpc.service';
-import { StatusAck } from '../common/interfaces';
+import { StatusAck } from '../types/interfaces';
 
 @Controller()
 export class GrpcController {

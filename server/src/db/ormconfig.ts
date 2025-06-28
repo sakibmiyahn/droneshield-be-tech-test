@@ -11,7 +11,9 @@ const ormconfig: DataSourceOptions = {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_NAME,
   entities: [Sensor, Software, SensorSoftwareHistory],
-  synchronize: true, // Set to false in production
+  synchronize: false,
+  migrationsRun: true,
+  migrations: ['dist/db/migration/*.js'],
 };
 
 export default ormconfig;

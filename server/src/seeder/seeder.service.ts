@@ -17,7 +17,7 @@ export class SeederService {
     const existingCount = await this.sensorRepository.count();
 
     if (existingCount >= count) {
-      this.logger.log(`Database already has ${existingCount} sensors. Skipping seeding.`);
+      this.logger.log(`DB already has ${existingCount} sensors. Skipping seeding.`);
       return;
     }
 

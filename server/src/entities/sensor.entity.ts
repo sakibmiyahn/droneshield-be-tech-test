@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SensorResponse } from '../common/interfaces';
+import { SensorResponse } from '../types/interfaces';
 import { Software } from './software.entity';
 
 @Entity()
@@ -25,11 +25,11 @@ export class Sensor {
   isOnline: boolean;
 
   @ManyToOne(() => Software, { nullable: true, cascade: false })
-  @JoinColumn({ name: 'currentSoftwareId' })
-  currentSoftware: Software;
+  @JoinColumn({ name: 'softwareId' })
+  software: Software;
 
   @Column({ nullable: true })
-  currentSoftwareId: number;
+  softwareId: number;
 
   @Index()
   @Column({ type: 'timestamp', nullable: true })
@@ -45,7 +45,7 @@ export class Sensor {
     return {
       id: this.id,
       serial: this.serial,
-      version: this.currentSoftware ? this.currentSoftware.version : null,
+      version: this.software ? this.software.version : null,
       isOnline: this.isOnline,
       lastSeenAt: this.lastSeenAt,
       createdAt: this.createdAt,

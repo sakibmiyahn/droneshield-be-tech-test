@@ -17,6 +17,7 @@ async function bootstrap() {
 
   // Enable CORS and validation
   app.enableCors();
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -33,6 +34,7 @@ async function bootstrap() {
       url: '0.0.0.0:50051',
     },
   });
+
   grpcApp.listen().then(() => logger.log('gRPC server is listening on port 50051'));
 
   // Start the HTTP server
