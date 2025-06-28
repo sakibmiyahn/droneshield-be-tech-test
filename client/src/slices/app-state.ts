@@ -64,7 +64,7 @@ export const reducers = {
       payload: {
         serial: string;
         version: string;
-        isoOnline: boolean;
+        isOnline: boolean;
       };
     }
   ): void {
