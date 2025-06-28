@@ -52,6 +52,8 @@ services:
       - UPLOADS_DIR=${UPLOADS_DIR:-/usr/app/uploads}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_TTL=${REDIS_TTL}
+      - SENSOR_STATUS_CRON=${SENSOR_STATUS_CRON}
     ports:
       - 8000:8000
       - 50051:50051
