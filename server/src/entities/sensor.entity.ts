@@ -31,9 +31,6 @@ export class Sensor {
   @Column({ nullable: true })
   softwareId: number;
 
-  @Column({ type: 'timestamp', nullable: true })
-  lastSeenAt: Date;
-
   @CreateDateColumn()
   createdAt: Date;
 

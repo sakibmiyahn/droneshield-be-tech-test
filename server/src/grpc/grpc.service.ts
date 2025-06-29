@@ -45,7 +45,6 @@ export class GrpcService {
 
       // Update online status
       sensor.isOnline = true;
-      sensor.lastSeenAt = new Date();
 
       const software = await this.softwareRepository.findOne({ where: { version: softwareVersion } });
 

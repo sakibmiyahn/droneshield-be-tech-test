@@ -1,12 +1,12 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialMigration1751110342511 implements MigrationInterface {
-    name = 'InitialMigration1751110342511'
+export class InitialMigration1751171450027 implements MigrationInterface {
+    name = 'InitialMigration1751171450027'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "software" ("id" SERIAL NOT NULL, "version" character varying NOT NULL, "filePath" character varying NOT NULL, "originalFileName" character varying NOT NULL, "uploadedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_83534220f3e823e90b989b2ae85" UNIQUE ("version"), CONSTRAINT "PK_3ceec82cc90b32643b07e8d9841" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_83534220f3e823e90b989b2ae8" ON "software" ("version") `);
-        await queryRunner.query(`CREATE TABLE "sensor" ("id" SERIAL NOT NULL, "serial" character varying NOT NULL, "isOnline" boolean NOT NULL DEFAULT false, "softwareId" integer, "lastSeenAt" TIMESTAMP, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_ea8e4b14160a976b4445bd6eff2" UNIQUE ("serial"), CONSTRAINT "PK_ccc38b9aa8b3e198b6503d5eee9" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "sensor" ("id" SERIAL NOT NULL, "serial" character varying NOT NULL, "isOnline" boolean NOT NULL DEFAULT false, "softwareId" integer, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_ea8e4b14160a976b4445bd6eff2" UNIQUE ("serial"), CONSTRAINT "PK_ccc38b9aa8b3e198b6503d5eee9" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_ea8e4b14160a976b4445bd6eff" ON "sensor" ("serial") `);
         await queryRunner.query(`CREATE INDEX "IDX_64e13fac825a0666d7a8034321" ON "sensor" ("isOnline") `);
         await queryRunner.query(`CREATE TABLE "sensor_software_history" ("id" SERIAL NOT NULL, "reportedAt" TIMESTAMP NOT NULL DEFAULT now(), "sensorId" integer, "softwareId" integer, CONSTRAINT "PK_f3f63a4834b53ba786d50baec25" PRIMARY KEY ("id"))`);

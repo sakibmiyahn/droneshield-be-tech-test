@@ -1,98 +1,265 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚁 DroneShield Backend - IoT Sensor Management System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A scalable NestJS backend service for managing IoT sensors with real-time status monitoring, software version management, and WebSocket-based live updates.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗️ Architecture Overview
 
-## Description
+This backend is designed to handle high-volume IoT sensor data with the following key architectural decisions:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### **Multi-Protocol Communication**
 
-## Project setup
+- **REST API**: For frontend data retrieval and software uploads
+- **gRPC**: For high-performance sensor status updates from the emitter
+- **WebSocket**: For real-time frontend updates via Socket.IO
 
-```bash
-$ npm install
+### **Data Layer**
+
+- **PostgreSQL**: Primary database with TypeORM for entity management
+- **Redis**: Caching layer for sensor online status with TTL-based offline detection
+- **File System**: Software PDF storage with version extraction
+
+### **Scalability Features**
+
+- **Database Indexing**: Optimised queries on sensor serial and online status
+- **Redis TTL**: Efficient offline detection without database polling
+- **Cron Jobs**: Background processing for sensor status management
+- **Connection Pooling**: Optimised database and Redis connections
+
+## 🚀 Features Implemented
+
+### **Core Functionality**
+
+✅ **Sensor Management**
+
+- Database seeding with 100 sensors using UUID serials
+- Paginated sensor listing with software version and online status
+- Real-time online/offline detection via Redis TTL (10-minute default)
+
+✅ **Software Version Control**
+
+- PDF file upload with semantic version validation
+- Version extraction from filename (e.g., `v1.0.3.pdf`)
+- Software history tracking for sensor version changes
+- Invalid version rejection (only accepts uploaded versions)
+
+✅ **Real-time Communication**
+
+- gRPC endpoint for sensor status updates (`DeviceStatusService.SendStatus`)
+- WebSocket gateway for live frontend updates
+- Automatic offline detection via scheduled cron job (every 2 minutes)
+
+✅ **API Endpoints**
+
+- `GET /sensors` - Paginated sensor list with filtering
+- `POST /upload` - Multi-file software upload with validation
+
+### **Data Models**
+
+```typescript
+// Sensor Entity
+- id: number (Primary Key)
+- serial: string (Unique, Indexed)
+- isOnline: boolean (Indexed)
+- softwareId: number (Foreign Key)
+- createdAt: Date
+- updatedAt: Date
+
+// Software Entity
+- id: number (Primary Key)
+- version: string (Unique, Indexed)
+- filePath: string
+- originalFileName: string
+- uploadedAt: Date
+
+// SensorSoftwareHistory Entity
+- id: number (Primary Key)
+- sensorId: number (Foreign Key)
+- softwareId: number (Foreign Key)
+- reportedAt: Date
 ```
 
-## Compile and run the project
+### **Performance Optimisations**
+
+- **Database Indexing**: Serial and online status columns indexed
+- **Redis Caching**: Sensor status with configurable TTL
+- **Batch Updates**: Efficient offline sensor marking
+- **Connection Reuse**: Optimised database and Redis connections
+
+## 🛠️ Technology Stack
+
+### **Core Framework**
+
+- **NestJS 11**: Enterprise-grade Node.js framework
+- **TypeScript**: Type-safe development
+- **TypeORM**: Database ORM with migration support
+
+### **Communication**
+
+- **gRPC**: High-performance microservice communication
+- **Socket.IO**: Real-time WebSocket updates
+- **Express**: REST API endpoints
+
+### **Data Storage**
+
+- **PostgreSQL 13**: Primary relational database
+- **Redis 7**: Caching and session management
+- **File System**: Software file storage
+
+### **Development Tools**
+
+- **ESLint + Prettier**: Code quality and formatting
+- **Docker**: Containerised deployment
+
+## 🚀 Getting Started
+
+### **Prerequisites**
+
+- Node.js 23+
+- Docker & Docker Compose
+- PostgreSQL 13+
+- Redis 7+
+
+### **Environment Variables**
 
 ```bash
-# development
-$ npm run start
+# Database
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_NAME=portal
 
-# watch mode
-$ npm run start:dev
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_TTL=600
 
-# production mode
-$ npm run start:prod
+# Application
+PORT=8000
+SENSOR_STATUS_CRON="*/2 * * * *"
+UPLOADS_DIR=/usr/app/uploads
 ```
 
-## Run tests
+## 📊 API Documentation
 
-```bash
-# unit tests
-$ npm run test
+### **REST Endpoints**
 
-# e2e tests
-$ npm run test:e2e
+#### `GET /sensors`
 
-# test coverage
-$ npm run test:cov
+Returns paginated list of sensors with online status and software versions.
+
+**Query Parameters:**
+
+- `page` (number): Page number (default: 0)
+- `limit` (number): Items per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "serial": "uuid-string",
+      "version": "v1.0.3",
+      "isOnline": true
+    }
+  ],
+  "total": 100,
+  "pageCount": 10
+}
 ```
 
-## Deployment
+#### `POST /upload`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Upload software PDF files with version extraction.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Request:** Multipart form data with `files` field
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Software uploaded successfully"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### **gRPC Service**
 
-## Resources
+#### `DeviceStatusService.SendStatus`
 
-Check out a few resources that may come in handy when working with NestJS:
+Processes real-time sensor status updates.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Request:**
 
-## Support
+```protobuf
+message DeviceStatus {
+  string serial = 1;
+  string software_version = 2;
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Response:**
 
-## Stay in touch
+```protobuf
+message StatusAck {
+  string message = 1;
+}
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### **WebSocket Events**
 
-## License
+#### `sensor-status-update`
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Emitted when sensor status changes.
+
+**Payload:**
+
+```json
+{
+  "serial": "uuid-string",
+  "version": "v1.0.3",
+  "isOnline": true
+}
+```
+
+## 🔧 Configuration
+
+### **Cron Jobs**
+
+- **Sensor Status Check**: Every 2 minutes (configurable via `SENSOR_STATUS_CRON`)
+- **Offline Detection**: Based on Redis TTL expiration
+
+### **Redis TTL**
+
+- **Default**: 10 minutes (600 seconds)
+- **Configurable**: Via `REDIS_TTL` environment variable
+
+### **File Upload**
+
+- **Supported Formats**: PDF files
+- **Version Extraction**: From filename (e.g., `v1.0.3.pdf`)
+- **Storage**: Local file system with Docker volume mapping
+
+## 🔮 Future Enhancements & Production Features
+
+### **With more time, the following enhancements would improve production readiness and scalability:**
+
+1. **Authentication & Security**
+   - JWT-based user authentication for client access
+   - API key/token system for emitter auth
+   - Rate limiting and request validation
+
+2. **Performance & Scalability**
+   - Message queue (Redis/RabbitMQ) to handle millions of sensor status updates
+   - Database connection pooling optimisation
+   - Redis clustering for high availability
+   - Cloud storage (AWS S3) for uploaded files
+   - Use cursor-based pagination instead of findAndCount for better scalability
+
+3. **Testing & Quality**
+   - Unit tests for services and DB interactions
+   - E2E tests for critical user flows
+   - Integration tests for database operations
+   - Automated testing in CI/CD pipeline
